@@ -1,40 +1,36 @@
 --[[
-    CAMERA PRESETS - Ferramenta profissional de cinematografia para Roblox
-    Executável em Delta (e outros executores)
-    Apenas controle local de câmera para gravação de vídeos
+    CAMERA PRESETS - Ferramenta de cinematografia
 ]]
 
-local Players           = game:GetService("Players")
-local TweenService      = game:GetService("TweenService")
-local UserInputService  = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
-local LocalPlayer       = Players.LocalPlayer
-local PlayerGui         = LocalPlayer:WaitForChild("PlayerGui")
-local Camera            = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
 
 local CONFIG = {
     Theme = {
-        Background      = Color3.fromRGB(18, 18, 22),
-        Card            = Color3.fromRGB(28, 28, 34),
-        Accent          = Color3.fromRGB(0, 180, 255),
-        AccentDark      = Color3.fromRGB(0, 120, 180),
-        TextPrimary     = Color3.fromRGB(240, 240, 245),
-        TextSecondary   = Color3.fromRGB(160, 160, 170),
-        Success         = Color3.fromRGB(80, 220, 120),
-        Border          = Color3.fromRGB(50, 50, 60),
+        Background = Color3.fromRGB(18, 18, 22),
+        Card = Color3.fromRGB(28, 28, 34),
+        Accent = Color3.fromRGB(0, 180, 255),
+        AccentDark = Color3.fromRGB(0, 120, 180),
+        TextPrimary = Color3.fromRGB(240, 240, 245),
+        TextSecondary = Color3.fromRGB(160, 160, 170),
+        Success = Color3.fromRGB(80, 220, 120),
+        Border = Color3.fromRGB(50, 50, 60),
     },
-    BaseSize            = UDim2.new(0, 340, 0, 520),
-    MobileScale         = 0.92,
-    CornerRadius        = 14,
-    ButtonRadius        = 8,
-    DefaultDuration     = 1.2,
-    MinDuration         = 0.1,
-    MaxDuration         = 8.0,
-    OpenTime            = 0.35,
-    ButtonPressScale    = 0.94,
+    BaseSize = UDim2.new(0, 340, 0, 520),
+    MobileScale = 0.92,
+    CornerRadius = 14,
+    ButtonRadius = 8,
+    DefaultDuration = 1.2,
+    MinDuration = 0.1,
+    MaxDuration = 8.0,
 }
 
-local Presets = {[1]=nil,[2]=nil,[3]=nil,[4]=nil,[5]=nil}
+local Presets = {[1] = nil, [2] = nil, [3] = nil, [4] = nil, [5] = nil}
 local CurrentTween, CurrentFOVTween = nil, nil
 local IsSmooth = true
 local TransitionDuration = CONFIG.DefaultDuration
@@ -43,7 +39,7 @@ local DragStart, FrameStart = nil, nil
 local UIVisible = true
 local IsMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
-local ScreenGui, MainFrame
+local MainFrame
 local Cards = {}
 local SmoothBtn, InstantBtn, DurationBox, ResetBtn, HideBtn
 
@@ -53,10 +49,10 @@ local function CreateCorner(parent, radius)
     c.Parent = parent
 end
 
-local function CreateStroke(parent, color, thickness)
+local function CreateStroke(parent)
     local s = Instance.new("UIStroke")
-    s.Color = color or CONFIG.Theme.Border
-    s.Thickness = thickness or 1
+    s.Color = CONFIG.Theme.Border
+    s.Thickness = 1
     s.Transparency = 0.4
     s.Parent = parent
 end
@@ -73,20 +69,6 @@ local function CreateButton(text, color, size)
     btn.BorderSizePixel = 0
     CreateCorner(btn, CONFIG.ButtonRadius)
     CreateStroke(btn)
-    
-    local originalSize = btn.Size
-    btn.MouseButton1Down:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.08), {
-            Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset * CONFIG.ButtonPressScale,
-                             originalSize.Y.Scale, originalSize.Y.Offset * CONFIG.ButtonPressScale)
-        }):Play()
-    end)
-    btn.MouseButton1Up:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.12), {Size = originalSize}):Play()
-    end)
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.12), {Size = originalSize}):Play()
-    end)
     return btn
 end
 
@@ -95,7 +77,7 @@ local function BuildUI()
         PlayerGui.CameraPresetsUI:Destroy()
     end
 
-    ScreenGui = Instance.new("ScreenGui")
+    local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "CameraPresetsUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -112,7 +94,7 @@ local function BuildUI()
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = ScreenGui
     CreateCorner(MainFrame)
-    CreateStroke(MainFrame, CONFIG.Theme.Border, 1.5)
+    CreateStroke(MainFrame)
 
     if IsMobile then
         local scale = CONFIG.MobileScale
@@ -155,9 +137,8 @@ local function BuildUI()
 
     for i = 1, 5 do
         local card = Instance.new("Frame")
-        card.Name = "CAM"..i
         card.Size = UDim2.new(1, -24, 0, cardHeight)
-        card.Position = UDim2.new(0, 12, 0, startY + (i-1)*(cardHeight+gap))
+        card.Position = UDim2.new(0, 12, 0, startY + (i-1)*(cardHeight + gap))
         card.BackgroundColor3 = CONFIG.Theme.Card
         card.BorderSizePixel = 0
         card.Parent = MainFrame
@@ -168,7 +149,7 @@ local function BuildUI()
         camLabel.Size = UDim2.new(0, 70, 0, 20)
         camLabel.Position = UDim2.new(0, 12, 0, 8)
         camLabel.BackgroundTransparency = 1
-        camLabel.Text = "CAM "..i
+        camLabel.Text = "CAM " .. i
         camLabel.Font = Enum.Font.GothamBold
         camLabel.TextSize = 14
         camLabel.TextColor3 = CONFIG.Theme.TextPrimary
@@ -199,10 +180,10 @@ local function BuildUI()
         delBtn.Position = UDim2.new(1, -90, 0.5, -14)
         delBtn.Parent = card
 
-        Cards[i] = {Frame=card, Status=status, Save=saveBtn, Go=goBtn, Delete=delBtn}
+        Cards[i] = {Frame = card, Status = status, Save = saveBtn, Go = goBtn, Delete = delBtn}
     end
 
-    local bottomY = startY + 5*(cardHeight+gap) + 12
+    local bottomY = startY + 5 * (cardHeight + gap) + 12
 
     local transLabel = Instance.new("TextLabel")
     transLabel.Size = UDim2.new(0, 100, 0, 20)
@@ -216,16 +197,16 @@ local function BuildUI()
     transLabel.Parent = MainFrame
 
     SmoothBtn = CreateButton("SUAVE", CONFIG.Theme.Accent, UDim2.new(0, 85, 0, 30))
-    SmoothBtn.Position = UDim2.new(0, 110, 0, bottomY-5)
+    SmoothBtn.Position = UDim2.new(0, 110, 0, bottomY - 5)
     SmoothBtn.Parent = MainFrame
 
     InstantBtn = CreateButton("INSTANTÂNEA", CONFIG.Theme.Card, UDim2.new(0, 110, 0, 30))
-    InstantBtn.Position = UDim2.new(0, 205, 0, bottomY-5)
+    InstantBtn.Position = UDim2.new(0, 205, 0, bottomY - 5)
     InstantBtn.Parent = MainFrame
 
     local durLabel = Instance.new("TextLabel")
     durLabel.Size = UDim2.new(0, 140, 0, 20)
-    durLabel.Position = UDim2.new(0, 12, 0, bottomY+40)
+    durLabel.Position = UDim2.new(0, 12, 0, bottomY + 40)
     durLabel.BackgroundTransparency = 1
     durLabel.Text = "Duração (segundos):"
     durLabel.Font = Enum.Font.Gotham
@@ -236,7 +217,7 @@ local function BuildUI()
 
     DurationBox = Instance.new("TextBox")
     DurationBox.Size = UDim2.new(0, 70, 0, 30)
-    DurationBox.Position = UDim2.new(0, 160, 0, bottomY+35)
+    DurationBox.Position = UDim2.new(0, 160, 0, bottomY + 35)
     DurationBox.BackgroundColor3 = CONFIG.Theme.Card
     DurationBox.Text = tostring(CONFIG.DefaultDuration)
     DurationBox.Font = Enum.Font.GothamMedium
@@ -249,14 +230,14 @@ local function BuildUI()
     CreateStroke(DurationBox)
 
     ResetBtn = CreateButton("Resetar Câmera", Color3.fromRGB(70, 50, 30), UDim2.new(0, 150, 0, 34))
-    ResetBtn.Position = UDim2.new(0, 12, 0, bottomY+80)
+    ResetBtn.Position = UDim2.new(0, 12, 0, bottomY + 80)
     ResetBtn.Parent = MainFrame
 
     HideBtn = CreateButton("Ocultar Interface", Color3.fromRGB(40, 40, 50), UDim2.new(0, 150, 0, 34))
-    HideBtn.Position = UDim2.new(1, -162, 0, bottomY+80)
+    HideBtn.Position = UDim2.new(1, -162, 0, bottomY + 80)
     HideBtn.Parent = MainFrame
 
-    MainFrame.Size = UDim2.new(0, MainFrame.Size.X.Offset, 0, bottomY+130)
+    MainFrame.Size = UDim2.new(0, MainFrame.Size.X.Offset, 0, bottomY + 130)
 end
 
 local function UpdateCardVisual(index)
@@ -278,12 +259,6 @@ local function SavePreset(index)
     if not Camera then return end
     Presets[index] = {CFrame = Camera.CFrame, FOV = Camera.FieldOfView}
     UpdateCardVisual(index)
-    
-    local card = Cards[index].Frame
-    TweenService:Create(card, TweenInfo.new(0.15), {BackgroundColor3 = CONFIG.Theme.Accent}):Play()
-    task.delay(0.2, function()
-        TweenService:Create(card, TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(32, 38, 34)}):Play()
-    end)
 end
 
 local function DeletePreset(index)
@@ -292,8 +267,14 @@ local function DeletePreset(index)
 end
 
 local function CancelCurrentTransition()
-    if CurrentTween then CurrentTween:Cancel() CurrentTween = nil end
-    if CurrentFOVTween then CurrentFOVTween:Cancel() CurrentFOVTween = nil end
+    if CurrentTween then
+        CurrentTween:Cancel()
+        CurrentTween = nil
+    end
+    if CurrentFOVTween then
+        CurrentFOVTween:Cancel()
+        CurrentFOVTween = nil
+    end
 end
 
 local function ApplyPreset(index)
@@ -338,8 +319,7 @@ local function SetupDragging()
             local pos = input.Position
             local absPos = MainFrame.AbsolutePosition
             local absSize = MainFrame.AbsoluteSize
-            if pos.X >= absPos.X and pos.X <= absPos.X + absSize.X and
-               pos.Y >= absPos.Y and pos.Y <= absPos.Y + 48 then
+            if pos.X >= absPos.X and pos.X <= absPos.X + absSize.X and pos.Y >= absPos.Y and pos.Y <= absPos.Y + 48 then
                 IsDragging = true
                 DragStart = pos
                 FrameStart = MainFrame.Position
@@ -351,10 +331,7 @@ local function SetupDragging()
         if not IsDragging then return end
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             local delta = input.Position - DragStart
-            MainFrame.Position = UDim2.new(
-                FrameStart.X.Scale, FrameStart.X.Offset + delta.X,
-                FrameStart.Y.Scale, FrameStart.Y.Offset + delta.Y
-            )
+            MainFrame.Position = UDim2.new(FrameStart.X.Scale, FrameStart.X.Offset + delta.X, FrameStart.Y.Scale, FrameStart.Y.Offset + delta.Y)
         end
     end)
 
@@ -427,4 +404,4 @@ end
 SmoothBtn.BackgroundColor3 = CONFIG.Theme.Accent
 InstantBtn.BackgroundColor3 = CONFIG.Theme.Card
 
-print("[Camera Presets] Carregado com sucesso! Tecla P para mostrar/ocultar.")
+print("[Camera Presets] Carregado com sucesso!")
